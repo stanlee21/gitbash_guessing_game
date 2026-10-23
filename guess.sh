@@ -1,7 +1,7 @@
 #!/bin/bash
 name=$1
 if [[ -z "$name" ]]; then
-    read -p "Enter your name: " name
+    read -r -p "Enter your name: " name
     # echo " Usage: ./guess.sh <name> where name is your name" 
 fi
 
@@ -17,7 +17,7 @@ count=0
 
 
 while (( "$guess" != number )); do
-	read -p "Guess the number if you can BETWEEN 1 & 100: " guess
+	read -r -p "Guess the number if you can BETWEEN 1 & 100: " guess
 
 if [[ -z "$guess" ]]; then
 	echo "Enter a number you infidel"
