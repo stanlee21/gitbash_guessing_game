@@ -3,7 +3,7 @@ name=$1
 
 # Ensure a name is provided
 if [[ -z "$name" ]]; then
-    read -r -p "Enter your name: " name
+    read -p "Enter your name: " name
 fi
 
 echo "WELCOME INFIDEL TO MY GUESSING GAME, $name!"
@@ -15,7 +15,7 @@ guess=-1
 count=0
 
 while (( guess != number )); do
-    read -r -p "Guess the number if you can BETWEEN 1 & 100: " guess
+    read -p "Guess the number if you can BETWEEN 1 & 100: " guess
 
     # 1. Check if input is empty
     if [[ -z "$guess" ]]; then
