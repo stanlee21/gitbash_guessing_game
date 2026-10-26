@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#---- define destination file so it saves properly
+SCORE_FILE="score.txt"
 #checking for too many arguements
 if (( $# > 2 )); then
 	echo "Error: Too many arguments. "
@@ -13,7 +15,8 @@ if [[ -z "$name" ]]; then
     read -r -p "Enter your name: " name
 fi
 
-
+#------ Tracking time
+start_time=$(date +%s)
 
 level="${2,,}"
 case "$level" in
@@ -53,7 +56,7 @@ fi
 
 
 #generating secret number.
-number=$(( RANDOM % 100 + 1 ))
+number=$(( RANDOM % MAX_RANGE + 1 ))
 guess=-1
 count=0
 
@@ -67,7 +70,7 @@ while (( guess != number )); do
 		exit 0
 	fi
 
-    read -r -p "Guess the number the random number: " guess
+    read -r -p "Guess the random number: " guess
 
     # 1. Check if input is empty
     if [[ -z "$guess" ]]; then
@@ -92,5 +95,14 @@ while (( guess != number )); do
     fi
 done
 
-# echo "Congratulations, "$name"! You guessed the number "$number" in "$count" attempts. "
-echo "${name}|${LEVEL_NAME}|${START_HUMAN}|${END_HUMAN}|${count}|${DURATION}" >> "$SCORE_FILE"
+#---- success path, the user won!----
+echo "CONGRATULATIONS, "$name"! You guessed the number "$number" in "$count" attempts. "
+
+
+#----calculate end details after game is finishes.
+end_time=$(date +"%Y-%m-%d %H:%M:%S")
+seconds=$(date +%s)
+duration=$(( seconds - start_time ))
+
+# send details to file safely
+echo "${name}|${LEVEL_NAME}|${start_time}|${end_time}|${count}|${duration} seconds" >> "$SCORE_FILE"
