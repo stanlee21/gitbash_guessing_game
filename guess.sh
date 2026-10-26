@@ -67,7 +67,7 @@ while (( guess != number )); do
 		exit 0
 	fi
 
-    read -r -p "Guess the number if you can BETWEEN 1 & 100: " guess
+    read -r -p "Guess the number the random number: " guess
 
     # 1. Check if input is empty
     if [[ -z "$guess" ]]; then
@@ -92,4 +92,5 @@ while (( guess != number )); do
     fi
 done
 
-echo "Congratulations, "$name"! You guessed the number "$number" in "$count" attempts. "
+# echo "Congratulations, "$name"! You guessed the number "$number" in "$count" attempts. "
+echo "${name}|${LEVEL_NAME}|${START_HUMAN}|${END_HUMAN}|${count}|${DURATION}" >> "$SCORE_FILE"
