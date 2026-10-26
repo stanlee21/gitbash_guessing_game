@@ -1,4 +1,11 @@
 #!/bin/bash
+
+#checking for too many arguements
+if (( $# > 2 )); then
+	echo "Error: Too many arguments. "
+	echo "Usage: $0 [name] [easy|normal|hard]"
+	exit 1
+fi
 name=$1
 
 # Ensure a name is provided
@@ -6,15 +13,60 @@ if [[ -z "$name" ]]; then
     read -r -p "Enter your name: " name
 fi
 
-echo "WELCOME INFIDEL TO MY GUESSING GAME, $name!"
-echo "===================================="
-echo "I have selected a random number between 1 and 100. Try to guess it!"
 
+
+level="${2,,}"
+case "$level" in
+	easy)
+		MAX_RANGE=50
+		MAX_ATTEMPT=-1
+		LEVEL_NAME="easy" 
+		;;
+	normal)
+		MAX_RANGE=100
+		MAX_ATTEMPT=-1
+		LEVEL_NAME="normal"
+		;;
+	hard)
+		MAX_RANGE=1000
+		MAX_ATTEMPT=7
+		LEVEL_NAME="hard"
+		;;
+	*)
+		level="normal"
+		MAX_RANGE=100
+		MAX_ATTEMPT=-1
+		LEVEL_NAME="normal"
+		;;
+esac
+
+
+echo "=========================================="
+echo "WELCOME INFIDEL TO MY GUESSING GAME, $name!"
+echo "PLAYER: $name | LEVEL: $LEVEL_NAME | RANGE: 1-$MAX_RANGE"
+echo "===================================="
+
+#informing the player that he has just a certain number of attempts
+if (( MAX_ATTEMPT != -1 )); then
+	echo "Listen! you have just '$MAX_ATTEMPT' attempts to guess the Number"
+fi
+
+
+#generating secret number.
 number=$(( RANDOM % 100 + 1 ))
 guess=-1
 count=0
 
 while (( guess != number )); do
+
+	#game over check
+	if (( MAX_ATTEMPT != -1 && count >= MAX_ATTEMPT )); then
+		echo "====================================================="
+		echo "GAME OVER, You ran out of attempts"
+		echo "the secret number is '$number': "
+		exit 0
+	fi
+
     read -r -p "Guess the number if you can BETWEEN 1 & 100: " guess
 
     # 1. Check if input is empty
@@ -40,5 +92,5 @@ while (( guess != number )); do
     fi
 done
 
-echo "===================================="
-echo "Congratulations, $name! You guessed the number $number in $count attempts."
+echo "====================================\n"
+echo "Congratulations, $name! You guessed the number $number in $count attempts. "
