@@ -92,5 +92,4 @@ while (( guess != number )); do
     fi
 done
 
-echo "====================================\n"
 echo "Congratulations, $name! You guessed the number $number in $count attempts. "
