@@ -22,7 +22,7 @@ while IFS='|' read -r f1 f2 f3 f4 f5 f6 f7 || [[ -n "$f1" ]]; do
 		[[ -z "$f1" || -z "$f2" || -z "$f3" || -z "$f4" || -z "$f5" || -z "$f6" ]] || \
 		[[ "$f2" != "easy" && "$f2" != "normal" && "$f2" != "hard" ]] || \
 		[[ ! "$f5" =~ ^[0-9]+$ ]] || \
-		[[ ! "r$emove_seconds" =~ ^[0-9]+$ ]]; then
+		[[ ! "$remove_seconds" =~ ^[0-9]+$ ]]; then
 	
 		#if any validation rule above fails, count it as damaged
 		damaged_count=$((damaged_count + 1))
