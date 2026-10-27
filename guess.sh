@@ -18,7 +18,7 @@ while IFS='|' read -r f1 f2 f3 f4 f5 f6 f7 || [[ -n "$f1" ]]; do
 	remove_seconds=${f6%% *}
 
 	# checking for curruptions using clear simple rules
-	if [[ -n "$f7" ]] || 
+	if [[ -n "$f7" ]] || \
 		[[ -z "$f1" || -z "$f2" || -z "$f3" || -z "$f4" || -z "$f5" || -z "$f6" ]] || \
 		[[ "$f2" != "easy" && "$f2" != "normal" && "$f2" != "hard" ]] || \
 		[[ ! "$f5" =~ ^[0-9]+$ ]] || \
@@ -75,6 +75,12 @@ esac
 
 echo "=========================================="
 echo "WELCOME INFIDEL TO MY GUESSING GAME, $name!"
+
+#warning message to tell the player if damaged lines exist
+if (( damaged_count > 0 )); then
+	echo "WARNING: $damaged_count damaged lines were skipped in the log"
+fi
+
 echo "PLAYER: $name | LEVEL: $LEVEL_NAME | RANGE: 1-$MAX_RANGE"
 echo "===================================="
 
@@ -135,3 +141,42 @@ duration=$(( seconds - start_time ))
 
 # send details to file safely
 echo "${name}|${LEVEL_NAME}|${start_time}|${end_time}|${count}|${duration} seconds" >> "$SCORE_FILE"
+
+# history and combine summary engine
+echo "=============================================================="
+echo "			MATCH HISTORY				"
+echo "=============================================================="
+
+#initialize counter for summary calculations
+total_games=0
+
+#read out data line by line
+while IFS='|' read -r h1 h2 h3 h4 h5 h6 h7 || [[ -n "$h1" ]]; do
+
+	#ignore empty spaced lines
+	if [[ -z "$h1" && -z "$h2" ]]; then
+		continue
+	fi
+
+	#remove text "seconds" out to clean the number 
+	remove_history_seconds=${h6%% *}
+
+	#rule verification filter
+	if [[ -n "$h7" ]] || \
+       [[ -z "$h1" || -z "$h2" || -z "$h3" || -z "$h4" || -z "$h5" || -z "$h6" ]] || \
+       [[ "$h2" != "easy" && "$h2" != "normal" && "$h2" != "hard" ]] || \
+       [[ ! "$h5" =~ ^[0-9]+$ ]] || \
+       [[ ! "$remove_history_seconds" =~ ^[0-9]+$ ]]; then
+        continue # Instantly skip this damaged record
+    fi
+
+	#if it is valid, print the game entry showing the level
+	echo "Player: $h1 | Level: $h2 | Attempts: $h5 | Time: $h6"
+
+	# Increment the summary total counter (Combines all difficulty levels)
+    total_games=$((total_games + 1))
+done < "$SCORE_FILE"
+
+echo "=================================================================="
+echo "SUMMARY: Total valid games played across all levels = $total_games"
+echo "=================================================================="
