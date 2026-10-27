@@ -1,10 +1,11 @@
 # 🏷 guess_game
 
-A gitbash script that prompts the user to guess a number
+Gitbash Guessing Game
 
 ## 📌 Problem Statement
 
-When learning shell scripting, transitioning from theoretical commands to logic flow control (like loops, conditionals, and user input validation) can be challenging. This project solves that by creating a practical, engaging exercise that requires handling dynamic user input and maintaining a game state in a terminal environment.
+A robust, interactive guessing game designed specifically for **Git Bash**. This project features variable difficulties, real-time score tracking, dynamic line validation, localized match history, leaderboard calculation systems, and safe user history pruning.
+The script is optimized to be completely compliant with strict **ShellCheck** linter definitions.
 
 ## Project_Gaols
 
@@ -22,23 +23,40 @@ When learning shell scripting, transitioning from theoretical commands to logic 
 
 ## Features
 
-**Random number generation:** Automatically picks a random number between 1 - 100 every time a new game starts
+### 1. Dynamic Difficulty Settings
 
-**Dynamic feedback:** Tells the user their guess is too "high" or too "low" to guide them to the correct answer.
+The script accepts arguments upon boot up to instantly calibrate gameplay ranges and limits:
+**Easy:** Values range from `1-50` with unlimited guessing attempts.
+**Normal:** Values range from `1-100` with unlimited guessing attempts *(Default fallback)*.
+**Hard:** Values range from `1-1000` capped tightly at a maximum of `7` attempts.
 
-**Score Tracking:** counts and displays the total number of attemps it took for the player to win.
+### 2. Time & Attempt Metrics
 
-## How can i run it?
+Tracks execution timings accurately across system shifts
+Isolates pure integer constants from text string logging layouts cleanly using string pattern truncation engines (`${variable%% *}`).
+Converts numerical entries safely back to Base-10 decimals (`$((10#$variable))`) to circumvent structural octal conversions errors natively.
 
-Navigate to the folder containing your script
-(`cd /home/user/project`)
+### 3. Interactive Performance Visualizations
+
+**Match History Summary:** Displays valid matching logs across all levels simultaneously.
+**Leaderboard Engine:** Filters records exclusively for the active match difficulty level. It displays the **Top 5** players sorted by fewest attempts first, then by fastest time, while utilizing memory matrices to ensure each player is listed only once.
+
+### 4. Secure History
+
+Uses safe isolation variables (`temp_file.txt`) to process file modification streams sequentially without data collisions.
+Ensures that matching entries belonging to other competitors remain completely untouched.
+
+## How to run the game?
 
 Give permission to the file to let it run as a program (`chmod +x guess_game.sh`)
+Launch the game by providing your name and preferred difficulty level as arguments:
 
-Execute the script (`./guess_game.sh`)
+```bash
+./guess.sh Muna easy
+./guess.sh Alex hard
+```
 
 ## What i learned in the process
 
 How to capture and read user input dynamically in real time
-
 How to apply standard conditional logic (`if/elif/else`) and loops (`while`) in the terminal
