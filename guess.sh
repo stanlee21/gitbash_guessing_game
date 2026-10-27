@@ -180,3 +180,65 @@ done < "$SCORE_FILE"
 echo "=================================================================="
 echo "SUMMARY: Total valid games played across all levels = $total_games"
 echo "=================================================================="
+
+
+# LEADERBOARD ENGINE (BEST GAME ONLY, TOP 5, SORTED BY TRIES THEN SPEED
+echo "		LEADERBOARD ($LEVEL_NAME level)			"
+echo "=============================================================="
+
+# Create a temporary file to hold intermediate sorted game data entries
+leaderboard="leaderboard.txt"
+touch "$leaderboard"
+> "$leaderboard"
+
+# Filter out only the valid matches belonging to the current match level
+while IFS='|' read -r l1 l2 l3 l4 l4_tries l4_seconds_raw l7 || [[ -n "$l1" ]]; do
+    if [[ -z "$l1" && -z "$l2" ]]; then
+        continue
+    fi
+
+	l4_seconds=${l4_seconds_raw%% *}
+
+	# All variables now correctly match the 'l' group (l4_tries and l2)
+    if [[ -n "$l7" ]] || \
+       [[ -z "$l1" || -z "$l2" || -z "$l3" || -z "$l4" || -z "$l4_tries" || -z "$l4_seconds_raw" ]] || \
+       [[ "$l2" != "easy" && "$l2" != "normal" && "$l2" != "hard" ]] || \
+       [[ ! "$l4_tries" =~ ^[0-9]+$ ]] || \
+       [[ ! "$l4_seconds" =~ ^[0-9]+$ ]]; then
+        continue # Skip corrupted rows safely
+    fi
+
+	# Only track matches for the level active in this game run
+    if [[ "$l2" == "$LEVEL_NAME" ]]; then
+        printf "%04d|%04d|%s\n" "$l4_tries" "$l4_seconds" "$l1" >> "$leaderboard"
+    fi
+done < "$SCORE_FILE"
+
+# Check if anyone has successfully logged a game at this level yet
+if [[ ! -s "$leaderboard" ]]; then
+    echo "No $LEVEL_NAME games played yet."
+    rm -f "$leaderboard"
+else
+    declare -A seen_players
+    rank=1
+
+	# Sort data (Fewest tries first, then fastest seconds)
+    while IFS='|' read -r pad_tries pad_seconds p_name || [[ -n "$pad_tries" ]]; do
+        real_tries=$((10#$pad_tries))
+        real_seconds=$((10#$pad_seconds))
+
+        # Only pull each player's absolute best personal score
+        if [[ -z "${seen_players[$p_name]}" ]]; then
+            seen_players[$p_name]=1
+            echo "$rank. Player: $p_name | Attempts: $real_tries | Time: $real_seconds seconds"
+            rank=$((rank + 1))
+        fi
+
+        if (( rank > 5 )); then
+            break
+        fi
+    done < <(sort "$leaderboard")
+
+    rm -f "$leaderboard"
+fi
+echo "========================================================"
