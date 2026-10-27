@@ -25,7 +25,7 @@ while IFS='|' read -r f1 f2 f3 f4 f5 f6 f7 || [[ -n "$f1" ]]; do
 		[[ ! "r$emove_seconds" =~ ^[0-9]+$ ]]; then
 	
 		#if any validation rule above fails, count it as damaged
-		damage_count=$((damage_count + 1))
+		damaged_count=$((damaged_count + 1))
 	fi
 
 done < "$SCORE_FILE"
