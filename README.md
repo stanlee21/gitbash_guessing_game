@@ -7,9 +7,9 @@ Gitbash Guessing Game
 A robust, interactive guessing game designed specifically for **Git Bash**. This project features variable difficulties, real-time score tracking, dynamic line validation, localized match history, leaderboard calculation systems, and safe user history pruning.
 The script is optimized to be completely compliant with strict **ShellCheck** linter definitions.
 
-## Project_Gaols
+## Project_Goals
 
-**ractice Core Bash Concepts:** Implement loops (`while`), conditional statements (`if/else`), and user input handling (`read`).
+**practice Core Bash Concepts:** Implement loops (`while`), conditional statements (`if/else`), and user input handling (`read`).
 
 **State Management:** Track variables across iterations (e.g., counting the total number of user attempts).
 
@@ -60,3 +60,22 @@ Launch the game by providing your name and preferred difficulty level as argumen
 
 How to capture and read user input dynamically in real time
 How to apply standard conditional logic (`if/elif/else`) and loops (`while`) in the terminal
+
+## Screenshots
+
+![alt text](<assets/image/Screenshot From 2026-10-27 10-19-42.png>)
+![alt text](<assets/image/Screenshot From 2026-10-27 10-19-53.png>)
+
+## Demo
+
+![alt text](<assets/image/Screenshot From 2026-10-27 10-19-07.png>)
+![alt text](<assets/image/Screenshot From 2026-10-27 10-19-20.png>)
+
+## ⚙ Installation & Setup
+
+Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/project-name.git
+cd project-name
+```

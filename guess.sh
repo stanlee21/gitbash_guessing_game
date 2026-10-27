@@ -66,7 +66,7 @@ while true; do
 		fi
 	done < "$SCORE_FILE"
 
-	# Display Header exactly matching the assignment photo format
+	# Display Header exactly matching format
 	echo ""
 	echo "=== GUESS THE NUMBER · Player: $name · Level: $LEVEL_NAME (1-$MAX_RANGE) ==="
 	if (( damaged_count > 0 )); then
