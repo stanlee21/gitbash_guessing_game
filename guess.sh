@@ -242,3 +242,42 @@ else
     rm -f "$leaderboard"
 fi
 echo "========================================================"
+
+
+# DELETE MY HISTORY ENGINE
+read -r -p "Delete my history? (y/yes/n/no): " confirm
+confirm="${confirm,,}"
+
+if [[ "$confirm" == "y" || "$confirm" == "yes" ]]; then
+    temp_file="temp_file.txt"
+    touch "$temp"
+    true > "$temp" # Satisfies strict ShellCheck SC2188
+
+    deleted_count=0
+
+    # Stream out the primary score file row by row to filter out this specific player
+    while IFS='|' read -r p1 p2 p3 p4 p5 p6 p7 || [[ -n "$p1" ]]; do
+        if [[ -z "$p1" && -z "$p2" ]]; then
+            continue
+        fi
+
+        # If the name on this row matches the active player, drop it and track the deletion
+        if [[ "$p1" == "$name" ]]; then
+            deleted_count=$((deleted_count + 1))
+        else
+            # Keep every other player's lines exactly as they were
+            echo "${p1}|${p2}|${p3}|${p4}|${p5}|${p6}" >> "$temp_file"
+        fi
+    done < "$SCORE_FILE"
+
+	# Save the updated history logs back into position safely
+    cp "$temp_file" "$SCORE_FILE"
+    rm -f "$temp_file"
+
+    echo "Deleted $deleted_count games."
+
+	elif [[ "$confirm" == "n" || "$onfirm" == "no" ]]; then
+    echo "Nothing deleted."
+	else
+    echo "Please answer y or n. Nothing deleted."
+fi
