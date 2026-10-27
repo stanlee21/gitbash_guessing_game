@@ -189,7 +189,7 @@ echo "=============================================================="
 # Create a temporary file to hold intermediate sorted game data entries
 leaderboard="leaderboard.txt"
 touch "$leaderboard"
-> "$leaderboard"
+true > "$leaderboard"
 
 # Filter out only the valid matches belonging to the current match level
 while IFS='|' read -r l1 l2 l3 l4 l4_tries l4_seconds_raw l7 || [[ -n "$l1" ]]; do
