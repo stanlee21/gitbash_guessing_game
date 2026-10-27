@@ -63,13 +63,12 @@ How to apply standard conditional logic (`if/elif/else`) and loops (`while`) in 
 
 ## Screenshots
 
-![alt text](<assets/image/Screenshot From 2026-10-27 10-19-42.png>)
-![alt text](<assets/image/Screenshot From 2026-10-27 10-19-53.png>)
+![alt text](<assets/image/Screenshot From 2026-10-27 11-41-37.png>)
 
 ## Demo
 
-![alt text](<assets/image/Screenshot From 2026-10-27 10-19-07.png>)
-![alt text](<assets/image/Screenshot From 2026-10-27 10-19-20.png>)
+![alt text](<assets/image/Screenshot From 2026-10-27 12-07-06.png>)
+![alt text](<assets/image/Screenshot From 2026-10-27 12-14-43.png>)
 
 ## ⚙ Installation & Setup
 
@@ -79,3 +78,8 @@ Clone the repository:
 git clone https://github.com/yourusername/project-name.git
 cd project-name
 ```
+
+Tata Stanley Mbajing
+Junior FrontEnd Developer
+[📩 Email: (stanleymbajingtata@gmail.com)]
+🌍 Based in Cameroon | Open to remote opportunities
