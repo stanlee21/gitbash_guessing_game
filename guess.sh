@@ -3,34 +3,10 @@
 #---- define destination file so it saves properly
 SCORE_FILE="score.txt"
 
-#counter for damaged lines
-damaged_count=0
+# Ensure the file exists so the loops don't error out on a fresh run
+touch "$SCORE_FILE"
 
-#beginner friendly checks for damaged lines
-#--- reading each line field-by-field splitting by the symbol "|"
-while IFS='|' read -r f1 f2 f3 f4 f5 f6 f7 || [[ -n "$f1" ]]; do
-
-	#skipping empty lines without damaging them completely
-	if [[ -z "$f1" && -z "$f2" ]]; then
-		continue
-	fi
-	#--remove the word "seconds" from the 6th field to isolate the raw number
-	remove_seconds=${f6%% *}
-
-	# checking for curruptions using clear simple rules
-	if [[ -n "$f7" ]] || \
-		[[ -z "$f1" || -z "$f2" || -z "$f3" || -z "$f4" || -z "$f5" || -z "$f6" ]] || \
-		[[ "$f2" != "easy" && "$f2" != "normal" && "$f2" != "hard" ]] || \
-		[[ ! "$f5" =~ ^[0-9]+$ ]] || \
-		[[ ! "$remove_seconds" =~ ^[0-9]+$ ]]; then
-	
-		#if any validation rule above fails, count it as damaged
-		damaged_count=$((damaged_count + 1))
-	fi
-
-done < "$SCORE_FILE"
-
-#checking for too many arguements
+#checking for too many arguments
 if (( $# > 2 )); then
 	echo "Error: Too many arguments. "
 	echo "Usage: $0 [name] [easy|normal|hard]"
@@ -43,9 +19,6 @@ name=$1
 if [[ -z "$name" ]]; then
     read -r -p "Enter your name: " name
 fi
-
-#------ Tracking time
-start_time=$(date +%s)
 
 level="${2,,}"
 case "$level" in
@@ -72,212 +45,223 @@ case "$level" in
 		;;
 esac
 
+# =========================================================================
+#  MAIN INTERACTIVE MENU LOOP
+# =========================================================================
+while true; do
+	# Recalculate damaged lines dynamically on every menu loop refresh
+	damaged_count=0
+	while IFS='|' read -r f1 f2 f3 f4 f5 f6 f7 || [[ -n "$f1" ]]; do
+		if [[ -z "$f1" && -z "$f2" ]]; then
+			continue
+		fi
+		remove_seconds=${f6%% *}
 
-echo "=========================================="
-echo "WELCOME INFIDEL TO MY GUESSING GAME, $name!"
+		if [[ -n "$f7" ]] || \
+			[[ -z "$f1" || -z "$f2" || -z "$f3" || -z "$f4" || -z "$f5" || -z "$f6" ]] || \
+			[[ "$f2" != "easy" && "$f2" != "normal" && "$f2" != "hard" ]] || \
+			[[ ! "$f5" =~ ^[0-9]+$ ]] || \
+			[[ ! "$remove_seconds" =~ ^[0-9]+$ ]]; then
+			damaged_count=$((damaged_count + 1))
+		fi
+	done < "$SCORE_FILE"
 
-#warning message to tell the player if damaged lines exist
-if (( damaged_count > 0 )); then
-	echo "WARNING: $damaged_count damaged lines were skipped in the log"
-fi
-
-echo "PLAYER: $name | LEVEL: $LEVEL_NAME | RANGE: 1-$MAX_RANGE"
-echo "===================================="
-
-#informing the player that he has just a certain number of attempts
-if (( MAX_ATTEMPT != -1 )); then
-	echo "Listen! you have just '$MAX_ATTEMPT' attempts to guess the Number"
-fi
-
-
-#generating secret number.
-number=$(( RANDOM % MAX_RANGE + 1 ))
-guess=-1
-count=0
-
-while (( guess != number )); do
-
-	#game over check
-	if (( MAX_ATTEMPT != -1 && count >= MAX_ATTEMPT )); then
-		echo "====================================================="
-		echo "GAME OVER, You ran out of attempts"
-		echo "the secret number is '$number': "
-		exit 0
+	# Display Header exactly matching the assignment photo format
+	echo ""
+	echo "=== GUESS THE NUMBER · Player: $name · Level: $LEVEL_NAME (1-$MAX_RANGE) ==="
+	if (( damaged_count > 0 )); then
+		echo "Warning: $damaged_count damaged line(s) in the games file were skipped."
 	fi
 
-    read -r -p "Guess the random number: " guess
+	# Display formal option index structure
+	echo "1) Play"
+	echo "2) My history"
+	echo "3) Leaderboard"
+	echo "4) Delete my history"
+	echo "5) Quit"
+	read -r -p "Choose: " CHOSEN_OPTION
 
-    # 1. Check if input is empty
-    if [[ -z "$guess" ]]; then
-        echo "Enter a number, you absolute infidel!"
-        continue # Use continue instead of exit so the game doesn't crash
-    fi
+	case "$CHOSEN_OPTION" in
+		1)
+			# ------------------------------------
+			#  1) PLAY GAME MODE
+			# ------------------------------------
+			start_time=$(date +%s)
+			if (( MAX_ATTEMPT != -1 )); then
+				echo "Listen! you have just '$MAX_ATTEMPT' attempts to guess the Number"
+			fi
 
-    # 2. Check if input is a valid positive integer
-    if [[ ! "$guess" =~ ^[0-9]+$ ]]; then
-        echo "That isn't even a number! Use your brain, infidel!"
-        continue
-    fi
+			number=$(( RANDOM % MAX_RANGE + 1 ))
+			guess=-1
+			count=0
 
-    # Increment count only for valid inputs
-    count=$((count + 1))
+			while (( guess != number )); do
+				if (( MAX_ATTEMPT != -1 && count >= MAX_ATTEMPT )); then
+					echo "====================================================="
+					echo "GAME OVER, You ran out of attempts"
+					echo "the secret number is '$number': "
+					break
+				fi
 
-    # 3. Numeric comparisons
-    if (( guess > number )); then
-        echo "LOL! Too high!"
-    elif (( guess < number )); then
-        echo "OH OH! Too low! Try again!"
-    fi
+				read -r -p "Guess the random number: " guess
+
+				if [[ -z "$guess" ]]; then
+					echo "Enter a number, you absolute infidel!"
+					continue 
+				fi
+
+				if [[ ! "$guess" =~ ^[0-9]+$ ]]; then
+					echo "That isn't even a number! Use your brain, infidel!"
+					continue
+				fi
+
+				count=$((count + 1))
+
+				if (( guess > number )); then
+					echo "LOL! Too high!"
+				elif (( guess < number )); then
+					echo "OH OH! Too low! Try again!"
+				fi
+			done
+
+			if (( guess == number )); then
+				echo "CONGRATULATIONS, $name! You guessed the number $number in $count attempts."
+				end_time=$(date +"%Y-%m-%d %H:%M:%S")
+				seconds=$(date +%s)
+				duration=$(( seconds - start_time ))
+				echo "${name}|${LEVEL_NAME}|${start_time}|${end_time}|${count}|${duration} seconds" >> "$SCORE_FILE"
+			fi
+			;;
+
+		2)
+			# ------------------------------------
+			#  2) MY HISTORY (CLEANLY ACCUMULATES METRICS)
+			# ------------------------------------
+			echo "=== MATCH HISTORY FOR $name ==="
+			while IFS='|' read -r h1 h2 h3 h4 h5 h6 _h7 || [[ -n "$h1" ]]; do
+				if [[ -z "$h1" ]]; then continue; fi
+				clean_history_seconds=${h6%% *}
+
+				if [[ -z "$h1" || -z "$h2" || -z "$h3" || -z "$h4" || -z "$h5" || -z "$h6" ]] || \
+				   [[ "$h2" != "easy" && "$h2" != "normal" && "$h2" != "hard" ]] || \
+				   [[ ! "$h5" =~ ^[0-9]+$ ]] || \
+				   [[ ! "$clean_history_seconds" =~ ^[0-9]+$ ]]; then
+					continue 
+				fi
+
+				if [[ "$h1" == "$name" ]]; then
+					# Parse raw seconds matching assignment format e.g. 1m40s
+					m=$((clean_history_seconds / 60))
+					s=$((clean_history_seconds % 60))
+					if (( m > 0 )); then formatted_time="${m}m${s}s"; else formatted_time="${s}s"; fi
+
+					short_date=${h4%% *}
+					echo "• Level: $h2 | Attempts: $h5 | Time: $formatted_time | Date: $short_date"
+				fi
+			done < "$SCORE_FILE"
+			;;
+
+		3)
+			# ------------------------------------
+			#  3) LEADERBOARD ENGINE
+			# ------------------------------------
+			echo "Leaderboard · $LEVEL_NAME · best game per player"
+			
+			leaderboard="leaderboard.txt"
+			touch "$leaderboard"
+			true > "$leaderboard"
+
+			while IFS='|' read -r l1 l2 l3 l4 l4_tries l4_seconds_raw _l7 || [[ -n "$l1" ]]; do
+				if [[ -z "$l1" && -z "$l2" ]]; then continue; fi
+				l4_seconds=${l4_seconds_raw%% *}
+
+				if [[ -z "$l1" || -z "$l2" || -z "$l3" || -z "$l4" || -z "$l4_tries" || -z "$l4_seconds_raw" ]] || \
+				   [[ "$l2" != "easy" && "$l2" != "normal" && "$l2" != "hard" ]] || \
+				   [[ ! "$l4_tries" =~ ^[0-9]+$ ]] || \
+				   [[ ! "$l4_seconds" =~ ^[0-9]+$ ]]; then
+					continue 
+				fi
+
+				if [[ "$l2" == "$LEVEL_NAME" ]]; then
+					short_date=${l4%% *}
+					printf "%04d|%04d|%s|%s\n" "$l4_tries" "$l4_seconds" "$l1" "$short_date" >> "$leaderboard"
+				fi
+			done < "$SCORE_FILE"
+
+			if [[ ! -s "$leaderboard" ]]; then
+				echo "No $LEVEL_NAME games played yet."
+				rm -f "$leaderboard"
+			else
+				printf "%-3s %-11s %-5s %-5s %-10s\n" "#" "PLAYER" "TRIES" "TIME" "DATE"
+				
+				declare -A seen_players
+				rank=1
+
+				while IFS='|' read -r pad_tries pad_seconds p_name p_date || [[ -n "$pad_tries" ]]; do
+					real_tries=$((10#$pad_tries))
+					real_seconds=$((10#$pad_seconds))
+
+					if [[ -z "${seen_players[$p_name]}" ]]; then
+						seen_players[$p_name]=1
+						
+						m=$((real_seconds / 60))
+						s=$((real_seconds % 60))
+						if (( m > 0 )); then pretty_time="${m}m${s}s"; else pretty_time="${s}s"; fi
+
+						printf "%-3d %-11s %-5d %-5s %-10s\n" "$rank" "$p_name" "$real_tries" "$pretty_time" "$p_date"
+						rank=$((rank + 1))
+					fi
+
+					if (( rank > 5 )); then break; fi
+				done < <(sort "$leaderboard")
+
+				rm -f "$leaderboard"
+			fi
+			;;
+
+		4)
+			# ------------------------------------
+			#  4) DELETE MY HISTORY ENGINE
+			# ------------------------------------
+			read -r -p "Delete my history? (y/yes/n/no): " confirm
+			confirm="${confirm,,}"
+
+			if [[ "$confirm" == "y" || "$confirm" == "yes" ]]; then
+				temp_file="temp_file.txt"
+				touch "$temp_file"
+				true > "$temp_file"
+
+				deleted_count=0
+				while IFS='|' read -r p1 p2 p3 p4 p5 p6 _p7 || [[ -n "$p1" ]]; do
+					if [[ -z "$p1" && -z "$p2" ]]; then continue; fi
+
+					if [[ "$p1" == "$name" ]]; then
+						deleted_count=$((deleted_count + 1))
+					else
+						echo "${p1}|${p2}|${p3}|${p4}|${p5}|${p6}" >> "$temp_file"
+					fi
+				done < "$SCORE_FILE"
+
+				cp "$temp_file" "$SCORE_FILE"
+				rm -f "$temp_file"
+				echo "Deleted $deleted_count games."
+
+			elif [[ "$confirm" == "n" || "$confirm" == "no" ]]; then
+				echo "Nothing deleted."
+			else
+				echo "Please answer y or n. Nothing deleted."
+			fi
+			;;
+
+		5)
+			#  5) QUIT
+			# ------------------------------------
+			echo "Goodbye!"
+			exit 0
+			;;
+
+		*)
+			echo "Invalid option. Please choose a number from 1 to 5."
+			;;
+	esac
 done
-
-#---- success path, the user won!----
-echo "CONGRATULATIONS, $name! You guessed the number $number in $count attempts. "
-
-
-#----calculate end details after game is finishes.
-end_time=$(date +"%Y-%m-%d %H:%M:%S")
-seconds=$(date +%s)
-duration=$(( seconds - start_time ))
-
-# send details to file safely
-echo "${name}|${LEVEL_NAME}|${start_time}|${end_time}|${count}|${duration} seconds" >> "$SCORE_FILE"
-
-# history and combine summary engine
-echo "=============================================================="
-echo "			MATCH HISTORY				"
-echo "=============================================================="
-
-#initialize counter for summary calculations
-total_games=0
-
-#read out data line by line
-while IFS='|' read -r h1 h2 h3 h4 h5 h6 h7 || [[ -n "$h1" ]]; do
-
-	#ignore empty spaced lines
-	if [[ -z "$h1" && -z "$h2" ]]; then
-		continue
-	fi
-
-	#remove text "seconds" out to clean the number 
-	remove_history_seconds=${h6%% *}
-
-	#rule verification filter
-	if [[ -n "$h7" ]] || \
-       [[ -z "$h1" || -z "$h2" || -z "$h3" || -z "$h4" || -z "$h5" || -z "$h6" ]] || \
-       [[ "$h2" != "easy" && "$h2" != "normal" && "$h2" != "hard" ]] || \
-       [[ ! "$h5" =~ ^[0-9]+$ ]] || \
-       [[ ! "$remove_history_seconds" =~ ^[0-9]+$ ]]; then
-        continue # Instantly skip this damaged record
-    fi
-
-	#if it is valid, print the game entry showing the level
-	echo "Player: $h1 | Level: $h2 | Attempts: $h5 | Time: $h6"
-
-	# Increment the summary total counter (Combines all difficulty levels)
-    total_games=$((total_games + 1))
-done < "$SCORE_FILE"
-
-echo "=================================================================="
-echo "SUMMARY: Total valid games played across all levels = $total_games"
-echo "=================================================================="
-
-
-# LEADERBOARD ENGINE (BEST GAME ONLY, TOP 5, SORTED BY TRIES THEN SPEED
-echo "		LEADERBOARD ($LEVEL_NAME level)			"
-echo "=============================================================="
-
-# Create a temporary file to hold intermediate sorted game data entries
-leaderboard="leaderboard.txt"
-touch "$leaderboard"
-true > "$leaderboard"
-
-# Filter out only the valid matches belonging to the current match level
-while IFS='|' read -r l1 l2 l3 l4 l4_tries l4_seconds_raw l7 || [[ -n "$l1" ]]; do
-    if [[ -z "$l1" && -z "$l2" ]]; then
-        continue
-    fi
-
-	l4_seconds=${l4_seconds_raw%% *}
-
-	# All variables now correctly match the 'l' group (l4_tries and l2)
-    if [[ -n "$l7" ]] || \
-       [[ -z "$l1" || -z "$l2" || -z "$l3" || -z "$l4" || -z "$l4_tries" || -z "$l4_seconds_raw" ]] || \
-       [[ "$l2" != "easy" && "$l2" != "normal" && "$l2" != "hard" ]] || \
-       [[ ! "$l4_tries" =~ ^[0-9]+$ ]] || \
-       [[ ! "$l4_seconds" =~ ^[0-9]+$ ]]; then
-        continue # Skip corrupted rows safely
-    fi
-
-	# Only track matches for the level active in this game run
-    if [[ "$l2" == "$LEVEL_NAME" ]]; then
-        printf "%04d|%04d|%s\n" "$l4_tries" "$l4_seconds" "$l1" >> "$leaderboard"
-    fi
-done < "$SCORE_FILE"
-
-# Check if anyone has successfully logged a game at this level yet
-if [[ ! -s "$leaderboard" ]]; then
-    echo "No $LEVEL_NAME games played yet."
-    rm -f "$leaderboard"
-else
-    declare -A seen_players
-    rank=1
-
-	# Sort data (Fewest tries first, then fastest seconds)
-    while IFS='|' read -r pad_tries pad_seconds p_name || [[ -n "$pad_tries" ]]; do
-        real_tries=$((10#$pad_tries))
-        real_seconds=$((10#$pad_seconds))
-
-        # Only pull each player's absolute best personal score
-        if [[ -z "${seen_players[$p_name]}" ]]; then
-            seen_players[$p_name]=1
-            echo "$rank. Player: $p_name | Attempts: $real_tries | Time: $real_seconds seconds"
-            rank=$((rank + 1))
-        fi
-
-        if (( rank > 5 )); then
-            break
-        fi
-    done < <(sort "$leaderboard")
-
-    rm -f "$leaderboard"
-fi
-echo "========================================================"
-
-
-# DELETE MY HISTORY ENGINE
-read -r -p "Delete my history? (y/yes/n/no): " confirm
-confirm="${confirm,,}"
-
-if [[ "$confirm" == "y" || "$confirm" == "yes" ]]; then
-    temp_file="temp_file.txt"
-    touch "$temp_file"
-    true > "$temp_file" # Satisfies strict ShellCheck SC2188
-
-    deleted_count=0
-
-    # Stream out the primary score file row by row to filter out this specific player
-    while IFS='|' read -r p1 p2 p3 p4 p5 p6 _p7 || [[ -n "$p1" ]]; do
-        if [[ -z "$p1" && -z "$p2" ]]; then
-            continue
-        fi
-
-        # If the name on this row matches the active player, drop it and track the deletion
-        if [[ "$p1" == "$name" ]]; then
-            deleted_count=$((deleted_count + 1))
-        else
-            # Keep every other player's lines exactly as they were
-            echo "${p1}|${p2}|${p3}|${p4}|${p5}|${p6}" >> "$temp_file"
-        fi
-    done < "$SCORE_FILE"
-
-	# Save the updated history logs back into position safely
-    cp "$temp_file" "$SCORE_FILE"
-    rm -f "$temp_file"
-
-    echo "Deleted $deleted_count games."
-
-	elif [[ "$confirm" == "n" || "$confirm" == "no" ]]; then
-    echo "Nothing deleted."
-	else
-    echo "Please answer y or n. Nothing deleted."
-fi
