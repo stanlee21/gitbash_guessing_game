@@ -250,13 +250,13 @@ confirm="${confirm,,}"
 
 if [[ "$confirm" == "y" || "$confirm" == "yes" ]]; then
     temp_file="temp_file.txt"
-    touch "$temp"
-    true > "$temp" # Satisfies strict ShellCheck SC2188
+    touch "$temp_file"
+    true > "$temp_file" # Satisfies strict ShellCheck SC2188
 
     deleted_count=0
 
     # Stream out the primary score file row by row to filter out this specific player
-    while IFS='|' read -r p1 p2 p3 p4 p5 p6 p7 || [[ -n "$p1" ]]; do
+    while IFS='|' read -r p1 p2 p3 p4 p5 p6 _p7 || [[ -n "$p1" ]]; do
         if [[ -z "$p1" && -z "$p2" ]]; then
             continue
         fi
@@ -276,7 +276,7 @@ if [[ "$confirm" == "y" || "$confirm" == "yes" ]]; then
 
     echo "Deleted $deleted_count games."
 
-	elif [[ "$confirm" == "n" || "$onfirm" == "no" ]]; then
+	elif [[ "$confirm" == "n" || "$confirm" == "no" ]]; then
     echo "Nothing deleted."
 	else
     echo "Please answer y or n. Nothing deleted."
