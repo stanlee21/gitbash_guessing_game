@@ -6,6 +6,30 @@ SCORE_FILE="score.txt"
 #counter for damaged lines
 damaged_count=0
 
+#beginner friendly checks for damaged lines
+#--- reading each line field-by-field splitting by the symbol "|"
+while IFS='|' read -r f1 f2 f3 f4 f5 f6 f7 || [[ -n "$f1" ]]; do
+
+	#skipping empty lines without damaging them completely
+	if [[ -z "$f1" && -z "$f2" ]]; then
+		continue
+	fi
+	#--remove the word "seconds" from the 6th field to isolate the raw number
+	remove_seconds=${f6%% *}
+
+	# checking for curruptions using clear simple rules
+	if [[ -n "$f7" ]] || 
+		[[ -z "$f1" || -z "$f2" || -z "$f3" || -z "$f4" || -z "$f5" || -z "$f6" ]] || \
+		[[ "$f2" != "easy" && "$f2" != "normal" && "$f2" != "hard" ]] || \
+		[[ ! "$f5" =~ ^[0-9]+$ ]] || \
+		[[ ! "r$emove_seconds" =~ ^[0-9]+$ ]]; then
+	
+		#if any validation rule above fails, count it as damaged
+		damage_count=$((damage_count + 1))
+	fi
+
+done < "$SCORE_FILE"
+
 #checking for too many arguements
 if (( $# > 2 )); then
 	echo "Error: Too many arguments. "
