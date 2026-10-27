@@ -2,12 +2,17 @@
 
 #---- define destination file so it saves properly
 SCORE_FILE="score.txt"
+
+#counter for damaged lines
+damaged_count=0
+
 #checking for too many arguements
 if (( $# > 2 )); then
 	echo "Error: Too many arguments. "
 	echo "Usage: $0 [name] [easy|normal|hard]"
 	exit 1
 fi
+
 name=$1
 
 # Ensure a name is provided
@@ -96,7 +101,7 @@ while (( guess != number )); do
 done
 
 #---- success path, the user won!----
-echo "CONGRATULATIONS, "$name"! You guessed the number "$number" in "$count" attempts. "
+echo "CONGRATULATIONS, $name! You guessed the number $number in $count attempts. "
 
 
 #----calculate end details after game is finishes.
