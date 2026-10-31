@@ -176,6 +176,41 @@ while true; do
 
 				duration=$(( end_epoch - start_epoch ))
 
+				# Check the player's previous best on this difficulty
+				previous_best=0
+				best_attempts=0
+				best_seconds=0
+
+				while IFS='|' read -r p1 p2 p3 p4 p5 p6 p7 || [[ -n "$p1" ]]; do
+
+					if ! valid_record "$p1" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7"; then
+						continue
+					fi
+
+					if [[ "$p1" == "$name" && "$p2" == "$LEVEL_NAME" ]]; then
+
+						if (( previous_best == 0 )) || \
+						(( p5 < best_attempts )) || \
+						(( p5 == best_attempts && p6 < best_seconds )); then
+
+							previous_best=1
+							best_attempts=$p5
+							best_seconds=$p6
+						fi
+					fi
+
+				done < "$SCORE_FILE"
+
+				# Display personal best result
+				if (( previous_best == 0 )); then
+					echo "This is your first game on $LEVEL_NAME!"
+				elif (( count < best_attempts )) || \
+					(( count == best_attempts && duration < best_seconds )); then
+					echo "New personal best! Previous best: $best_attempts attempts."
+				else
+					echo "Your personal best is still $best_attempts attempts."
+				fi
+
 				echo "${name}|${LEVEL_NAME}|${start_time}|${end_time}|${count}|${duration}" >> "$SCORE_FILE"
 			fi
 			;;

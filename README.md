@@ -63,12 +63,13 @@ How to apply standard conditional logic (`if/elif/else`) and loops (`while`) in 
 
 ## Screenshots
 
-![alt text](<assets/image/Screenshot From 2026-10-27 11-41-37.png>)
+![alt text](<assets/image/Screenshot From 2026-10-31 12-48-14.png>)
 
 ## Demo
 
-![alt text](<assets/image/Screenshot From 2026-10-27 12-07-06.png>)
-![alt text](<assets/image/Screenshot From 2026-10-27 12-14-43.png>)
+![alt text](<assets/image/Screenshot From 2026-10-31 12-47-44.png>)
+
+![alt text](<assets/image/Screenshot From 2026-10-31 12-48-53.png>)
 
 ## ⚙ Installation & Setup
 
