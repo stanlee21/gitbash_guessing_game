@@ -216,19 +216,23 @@ while true; do
 			
 			leaderboard="leaderboard.txt"
 			touch "$leaderboard"
-			true > "$leaderboard"
+			: > "$leaderboard"
 
-			# Recalculate damaged lines dynamically on every menu loop refresh
-			damaged_count=0
+			while IFS='|' read -r l1 l2 l3 l4 l5 l6 l7 || [[ -n "$l1" ]]; do
 
-			while IFS='|' read -r f1 f2 f3 f4 f5 f6 f7 || [[ -n "$f1" ]]; do
-
-				if [[ -z "$f1" && -z "$f2" ]]; then
+				if [[ -z "$l1" && -z "$l2" ]]; then
 					continue
 				fi
 
-				if ! valid_record "$f1" "$f2" "$f3" "$f4" "$f5" "$f6" "$f7"; then
-					damaged_count=$((damaged_count + 1))
+				if ! valid_record "$l1" "$l2" "$l3" "$l4" "$l5" "$l6" "$l7"; then
+					continue
+				fi
+
+				if [[ "$l2" == "$LEVEL_NAME" ]]; then
+					short_date=${l4%% *}
+
+					printf "%04d|%04d|%s|%s\n" \
+						"$l5" "$l6" "$l1" "$short_date" >> "$leaderboard"
 				fi
 
 			done < "$SCORE_FILE"
