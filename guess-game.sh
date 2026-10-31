@@ -181,33 +181,56 @@ while true; do
 			;;
 
 		2)
+			#  2) MY HISTORY
 			# ------------------------------------
-			#  2) MY HISTORY (CLEANLY ACCUMULATES METRICS)
-			# ------------------------------------
-			echo "=== MATCH HISTORY FOR $name ==="
-			while IFS='|' read -r h1 h2 h3 h4 h5 h6 _h7 || [[ -n "$h1" ]]; do
-				if [[ -z "$h1" ]]; then continue; fi
-				clean_history_seconds=${h6%% *}
 
-				if [[ -z "$h1" || -z "$h2" || -z "$h3" || -z "$h4" || -z "$h5" || -z "$h6" ]] || \
-				   [[ "$h2" != "easy" && "$h2" != "normal" && "$h2" != "hard" ]] || \
-				   [[ ! "$h5" =~ ^[0-9]+$ ]] || \
-				   [[ ! "$clean_history_seconds" =~ ^[0-9]+$ ]]; then
-					continue 
+			echo "=== MATCH HISTORY FOR $name ==="
+
+			total_games=0
+			total_attempts=0
+
+			while IFS='|' read -r h1 h2 h3 h4 h5 h6 h7 || [[ -n "$h1" ]]; do
+
+				if [[ -z "$h1" && -z "$h2" ]]; then
+					continue
+				fi
+
+				if ! valid_record "$h1" "$h2" "$h3" "$h4" "$h5" "$h6" "$h7"; then
+					continue
 				fi
 
 				if [[ "$h1" == "$name" ]]; then
-					# Parse raw seconds matching assignment format e.g. 1m40s
-					m=$((clean_history_seconds / 60))
-					s=$((clean_history_seconds % 60))
-					if (( m > 0 )); then formatted_time="${m}m${s}s"; else formatted_time="${s}s"; fi
+
+					total_games=$((total_games + 1))
+					total_attempts=$((total_attempts + h5))
+
+					m=$((h6 / 60))
+					s=$((h6 % 60))
+
+					if (( m > 0 )); then
+						formatted_time="${m}m${s}s"
+					else
+						formatted_time="${s}s"
+					fi
 
 					short_date=${h4%% *}
+
 					echo "• Level: $h2 | Attempts: $h5 | Time: $formatted_time | Date: $short_date"
 				fi
-			done < "$SCORE_FILE"
-			;;
 
+			done < "$SCORE_FILE"
+
+			if (( total_games > 0 )); then
+				average_attempts=$(awk -v total="$total_attempts" -v games="$total_games" \
+					'BEGIN { printf "%.2f", total / games }')
+
+				echo "------------------------------------"
+				echo "Total games played: $total_games"
+				echo "Average attempts: $average_attempts"
+			else
+				echo "No valid games found for $name."
+			fi
+			;;
 		3)
 			# ------------------------------------
 			#  3) LEADERBOARD ENGINE
