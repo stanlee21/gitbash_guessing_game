@@ -341,9 +341,12 @@ while true; do
 			confirm="${confirm,,}"
 
 			if [[ "$confirm" == "y" || "$confirm" == "yes" ]]; then
-				temp_file="temp_file.txt"
-				touch "$temp_file"
-				true > "$temp_file"
+				temp_file=$(mktemp) || {
+					echo "Error: Could not create temporary file."
+					continue
+				}
+
+				trap 'rm -f "$leaderboard" "$temp_file"' EXIT
 
 				deleted_count=0
 				while IFS='|' read -r p1 p2 p3 p4 p5 p6 _p7 || [[ -n "$p1" ]]; do
