@@ -158,21 +158,21 @@ while true; do
 				fi
 
 				if [[ -z "$guess" ]]; then
-					echo "Enter a number, you absolute infidel!"
+					echo "Please Enter a number"
 					continue 
 				fi
 
 				if [[ ! "$guess" =~ ^[0-9]+$ ]]; then
-					echo "That isn't even a number! Use your brain, infidel!"
+					echo "Invalid input, please Enter a whole number."
 					continue
 				fi
 
 				count=$((count + 1))
 
 				if (( guess > number )); then
-					echo "LOL! Too high!"
+					echo "Too high! Try again"
 				elif (( guess < number )); then
-					echo "OH OH! Too low! Try again!"
+					echo "Too low! Try again!"
 				fi
 			done
 
