@@ -23,7 +23,6 @@ if [[ -z "$name" || "$name" == *"|"* ]]; then
     exit 1
 fi
 
-# ==========================================
 # DIFFICULTY LEVEL VALIDATION
 # ==========================================
 
@@ -55,6 +54,40 @@ case "$level" in
         exit 1
         ;;
 esac
+
+# SCORE RECORD VALIDATION
+# ==========================================
+
+valid_record() {
+    local player="$1"
+    local game_level="$2"
+    local start="$3"
+    local end="$4"
+    local attempts="$5"
+    local seconds="$6"
+    local extra="$7"
+
+    # Check that all six required fields exist
+    [[ -n "$player" && -n "$game_level" && -n "$start" &&
+       -n "$end" && -n "$attempts" && -n "$seconds" ]] || return 1
+
+    # Reject records containing extra fields
+    [[ -z "$extra" ]] || return 1
+
+    # Check valid difficulty
+    [[ "$game_level" == "easy" || "$game_level" == "normal" ||
+       "$game_level" == "hard" ]] || return 1
+
+    # Check readable date-time format
+    [[ "$start" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}\ [0-9]{2}:[0-9]{2}:[0-9]{2}$ ]] || return 1
+    [[ "$end" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}\ [0-9]{2}:[0-9]{2}:[0-9]{2}$ ]] || return 1
+
+    # Check that attempts and seconds are numeric
+    [[ "$attempts" =~ ^[0-9]+$ ]] || return 1
+    [[ "$seconds" =~ ^[0-9]+$ ]] || return 1
+
+    return 0
+}
 
 #  MAIN INTERACTIVE MENU LOOP
 # =========================================================================
@@ -185,23 +218,21 @@ while true; do
 			touch "$leaderboard"
 			true > "$leaderboard"
 
-			while IFS='|' read -r l1 l2 l3 l4 l4_tries l4_seconds_raw _l7 || [[ -n "$l1" ]]; do
-				if [[ -z "$l1" && -z "$l2" ]]; then continue; fi
-				l4_seconds=${l4_seconds_raw%% *}
+			# Recalculate damaged lines dynamically on every menu loop refresh
+			damaged_count=0
 
-				if [[ -z "$l1" || -z "$l2" || -z "$l3" || -z "$l4" || -z "$l4_tries" || -z "$l4_seconds_raw" ]] || \
-				   [[ "$l2" != "easy" && "$l2" != "normal" && "$l2" != "hard" ]] || \
-				   [[ ! "$l4_tries" =~ ^[0-9]+$ ]] || \
-				   [[ ! "$l4_seconds" =~ ^[0-9]+$ ]]; then
-					continue 
+			while IFS='|' read -r f1 f2 f3 f4 f5 f6 f7 || [[ -n "$f1" ]]; do
+
+				if [[ -z "$f1" && -z "$f2" ]]; then
+					continue
 				fi
 
-				if [[ "$l2" == "$LEVEL_NAME" ]]; then
-					short_date=${l4%% *}
-					printf "%04d|%04d|%s|%s\n" "$l4_tries" "$l4_seconds" "$l1" "$short_date" >> "$leaderboard"
+				if ! valid_record "$f1" "$f2" "$f3" "$f4" "$f5" "$f6" "$f7"; then
+					damaged_count=$((damaged_count + 1))
 				fi
+
 			done < "$SCORE_FILE"
-
+			
 			if [[ ! -s "$leaderboard" ]]; then
 				echo "No $LEVEL_NAME games played yet."
 				rm -f "$leaderboard"
