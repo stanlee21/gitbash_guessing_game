@@ -349,14 +349,17 @@ while true; do
 				trap 'rm -f "$leaderboard" "$temp_file"' EXIT
 
 				deleted_count=0
-				while IFS='|' read -r p1 p2 p3 p4 p5 p6 _p7 || [[ -n "$p1" ]]; do
-					if [[ -z "$p1" && -z "$p2" ]]; then continue; fi
+
+				while IFS= read -r line || [[ -n "$line" ]]; do
+
+					IFS='|' read -r p1 _ <<< "$line"
 
 					if [[ "$p1" == "$name" ]]; then
 						deleted_count=$((deleted_count + 1))
 					else
-						echo "${p1}|${p2}|${p3}|${p4}|${p5}|${p6}" >> "$temp_file"
+						printf '%s\n' "$line" >> "$temp_file"
 					fi
+
 				done < "$SCORE_FILE"
 
 				cp "$temp_file" "$SCORE_FILE"
