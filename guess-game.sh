@@ -77,7 +77,6 @@ valid_record() {
     local end="$4"
     local attempts="$5"
     local seconds="$6"
-    local extra="$7"
     local field_count="$8"
 
     # Require exactly six fields
