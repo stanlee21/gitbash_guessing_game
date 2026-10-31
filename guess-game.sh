@@ -139,6 +139,7 @@ while true; do
 			number=$(( RANDOM % MAX_RANGE + 1 ))
 			guess=-1
 			count=0
+			quit_game=0
 
 			while (( guess != number )); do
 				if (( MAX_ATTEMPT != -1 && count >= MAX_ATTEMPT )); then
@@ -149,6 +150,12 @@ while true; do
 				fi
 
 				read -r -p "Guess the random number: " guess
+
+				if [[ "$guess" == "q" || "$guess" == "Q" ]]; then
+					echo "Game cancelled. Returning to menu..."
+					quit_game=1
+					break
+				fi
 
 				if [[ -z "$guess" ]]; then
 					echo "Enter a number, you absolute infidel!"
@@ -169,7 +176,7 @@ while true; do
 				fi
 			done
 
-			if (( guess == number )); then
+			if (( quit_game == 0 )) && (( guess == number )); then
 				echo "CONGRATULATIONS, $name! You guessed the number $number in $count attempts."
 				end_time=$(date +"%Y-%m-%d %H:%M:%S")
 				end_epoch=$(date +%s)
