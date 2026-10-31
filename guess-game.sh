@@ -6,46 +6,56 @@ SCORE_FILE="score.txt"
 # Ensure the file exists so the loops don't error out on a fresh run
 touch "$SCORE_FILE"
 
-#checking for too many arguments
-if (( $# > 2 )); then
-	echo "Error: Too many arguments. "
-	echo "Usage: $0 [name] [easy|normal|hard]"
-	exit 1
+# Check if the correct number of arguments was provided
+if (( $# < 1 || $# > 2 )); then
+    echo "Error: Invalid number of arguments."
+    echo "Usage: $0 name [easy|normal|hard]"
+    exit 1
 fi
 
+# Get the player's name
 name=$1
 
-# Ensure a name is provided
-if [[ -z "$name" ]]; then
-    read -r -p "Enter your name: " name
+# Validate the player's name
+if [[ -z "$name" || "$name" == *"|"* ]]; then
+    echo "Error: Invalid player name."
+    echo "Usage: $0 name [easy|normal|hard]"
+    exit 1
 fi
 
-level="${2,,}"
+# ==========================================
+# DIFFICULTY LEVEL VALIDATION
+# ==========================================
+
+level="${2:-normal}"
+level="${level,,}"
+
 case "$level" in
-	easy)
-		MAX_RANGE=50
-		MAX_ATTEMPT=-1
-		LEVEL_NAME="easy" 
-		;;
-	normal)
-		MAX_RANGE=100
-		MAX_ATTEMPT=-1
-		LEVEL_NAME="normal"
-		;;
-	hard)
-		MAX_RANGE=1000
-		MAX_ATTEMPT=7
-		LEVEL_NAME="hard"
-		;;
-	*)
-		level="normal"
-		MAX_RANGE=100
-		MAX_ATTEMPT=-1
-		LEVEL_NAME="normal"
-		;;
+    easy)
+        MAX_RANGE=50
+        MAX_ATTEMPT=-1
+        LEVEL_NAME="easy"
+        ;;
+
+    normal)
+        MAX_RANGE=100
+        MAX_ATTEMPT=-1
+        LEVEL_NAME="normal"
+        ;;
+
+    hard)
+        MAX_RANGE=1000
+        MAX_ATTEMPT=-1
+        LEVEL_NAME="hard"
+        ;;
+
+    *)
+        echo "Error: Invalid difficulty level."
+        echo "Usage: $0 name [easy|normal|hard]"
+        exit 1
+        ;;
 esac
 
-# =========================================================================
 #  MAIN INTERACTIVE MENU LOOP
 # =========================================================================
 while true; do
@@ -86,7 +96,9 @@ while true; do
 			# ------------------------------------
 			#  1) PLAY GAME MODE
 			# ------------------------------------
-			start_time=$(date +%s)
+			start_time=$(date +"%Y-%m-%d %H:%M:%S")
+			start_epoch=$(date +%s)
+
 			if (( MAX_ATTEMPT != -1 )); then
 				echo "Listen! you have just '$MAX_ATTEMPT' attempts to guess the Number"
 			fi
@@ -127,9 +139,11 @@ while true; do
 			if (( guess == number )); then
 				echo "CONGRATULATIONS, $name! You guessed the number $number in $count attempts."
 				end_time=$(date +"%Y-%m-%d %H:%M:%S")
-				seconds=$(date +%s)
-				duration=$(( seconds - start_time ))
-				echo "${name}|${LEVEL_NAME}|${start_time}|${end_time}|${count}|${duration} seconds" >> "$SCORE_FILE"
+				end_epoch=$(date +%s)
+
+				duration=$(( end_epoch - start_epoch ))
+
+				echo "${name}|${LEVEL_NAME}|${start_time}|${end_time}|${count}|${duration}" >> "$SCORE_FILE"
 			fi
 			;;
 
