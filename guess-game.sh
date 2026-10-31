@@ -1,7 +1,19 @@
 #!/bin/bash
 
-#---- define destination file so it saves properly
+# Define destination file
 SCORE_FILE="score.txt"
+
+# Track temporary files
+TEMP_FILES=()
+
+# Remove temporary files when the script exits
+cleanup() {
+    if (( ${#TEMP_FILES[@]} > 0 )); then
+        rm -f -- "${TEMP_FILES[@]}"
+    fi
+}
+
+trap cleanup EXIT
 
 # Ensure the file exists so the loops don't error out on a fresh run
 touch "$SCORE_FILE"
@@ -66,13 +78,14 @@ valid_record() {
     local attempts="$5"
     local seconds="$6"
     local extra="$7"
+    local field_count="$8"
+
+    # Require exactly six fields
+    [[ "$field_count" == "6" ]] || return 1
 
     # Check that all six required fields exist
     [[ -n "$player" && -n "$game_level" && -n "$start" &&
        -n "$end" && -n "$attempts" && -n "$seconds" ]] || return 1
-
-    # Reject records containing extra fields
-    [[ -z "$extra" ]] || return 1
 
     # Check valid difficulty
     [[ "$game_level" == "easy" || "$game_level" == "normal" ||
@@ -95,7 +108,9 @@ while true; do
 	# Recalculate damaged lines dynamically on every menu loop refresh
 	damaged_count=0
 
-	while IFS='|' read -r f1 f2 f3 f4 f5 f6 f7 || [[ -n "$f1" ]]; do
+	while IFS= read -r line || [[ -n "$line" ]]; do
+		IFS='|' read -r f1 f2 f3 f4 f5 f6 f7 <<< "$line"
+		field_count=$(awk -F'|' '{print NF}' <<< "$line")
 
 		# Ignore completely empty lines
 		if [[ -z "$f1" && -z "$f2" ]]; then
@@ -103,7 +118,7 @@ while true; do
 		fi
 
 		# Count records that fail validation
-		if ! valid_record "$f1" "$f2" "$f3" "$f4" "$f5" "$f6" "$f7"; then
+		if ! valid_record "$f1" "$f2" "$f3" "$f4" "$f5" "$f6" "$f7" "$field_count"; then
 			damaged_count=$((damaged_count + 1))
 		fi
 
@@ -188,9 +203,11 @@ while true; do
 				best_attempts=0
 				best_seconds=0
 
-				while IFS='|' read -r p1 p2 p3 p4 p5 p6 p7 || [[ -n "$p1" ]]; do
+				while IFS= read -r line || [[ -n "$line" ]]; do
+					IFS='|' read -r p1 p2 p3 p4 p5 p6 p7 <<< "$line"
+					field_count=$(awk -F'|' '{print NF}' <<< "$line")
 
-					if ! valid_record "$p1" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7"; then
+					if ! valid_record "$p1" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$field_count"; then
 						continue
 					fi
 
@@ -231,13 +248,11 @@ while true; do
 			total_games=0
 			total_attempts=0
 
-			while IFS='|' read -r h1 h2 h3 h4 h5 h6 h7 || [[ -n "$h1" ]]; do
+			while IFS= read -r line || [[ -n "$line" ]]; do
+				IFS='|' read -r h1 h2 h3 h4 h5 h6 h7 <<< "$line"
+				field_count=$(awk -F'|' '{print NF}' <<< "$line")
 
-				if [[ -z "$h1" && -z "$h2" ]]; then
-					continue
-				fi
-
-				if ! valid_record "$h1" "$h2" "$h3" "$h4" "$h5" "$h6" "$h7"; then
+				if ! valid_record "$h1" "$h2" "$h3" "$h4" "$h5" "$h6" "$h7" "$field_count"; then
 					continue
 				fi
 
@@ -284,15 +299,13 @@ while true; do
 				continue
 			}
 
-			trap 'rm -f "$leaderboard"' EXIT
+			TEMP_FILES+=("$leaderboard")
 
-			while IFS='|' read -r l1 l2 l3 l4 l5 l6 l7 || [[ -n "$l1" ]]; do
+			while IFS= read -r line || [[ -n "$line" ]]; do
+				IFS='|' read -r l1 l2 l3 l4 l5 l6 l7 <<< "$line"
+				field_count=$(awk -F'|' '{print NF}' <<< "$line")
 
-				if [[ -z "$l1" && -z "$l2" ]]; then
-					continue
-				fi
-
-				if ! valid_record "$l1" "$l2" "$l3" "$l4" "$l5" "$l6" "$l7"; then
+				if ! valid_record "$l1" "$l2" "$l3" "$l4" "$l5" "$l6" "$l7" "$field_count"; then
 					continue
 				fi
 
@@ -346,7 +359,7 @@ while true; do
 					continue
 				}
 
-				trap 'rm -f "$leaderboard" "$temp_file"' EXIT
+				TEMP_FILES+=("$temp_file")
 
 				deleted_count=0
 
