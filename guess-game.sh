@@ -94,19 +94,19 @@ valid_record() {
 while true; do
 	# Recalculate damaged lines dynamically on every menu loop refresh
 	damaged_count=0
+
 	while IFS='|' read -r f1 f2 f3 f4 f5 f6 f7 || [[ -n "$f1" ]]; do
+
+		# Ignore completely empty lines
 		if [[ -z "$f1" && -z "$f2" ]]; then
 			continue
 		fi
-		remove_seconds=${f6%% *}
 
-		if [[ -n "$f7" ]] || \
-			[[ -z "$f1" || -z "$f2" || -z "$f3" || -z "$f4" || -z "$f5" || -z "$f6" ]] || \
-			[[ "$f2" != "easy" && "$f2" != "normal" && "$f2" != "hard" ]] || \
-			[[ ! "$f5" =~ ^[0-9]+$ ]] || \
-			[[ ! "$remove_seconds" =~ ^[0-9]+$ ]]; then
+		# Count records that fail validation
+		if ! valid_record "$f1" "$f2" "$f3" "$f4" "$f5" "$f6" "$f7"; then
 			damaged_count=$((damaged_count + 1))
 		fi
+
 	done < "$SCORE_FILE"
 
 	# Display Header exactly matching format
@@ -170,9 +170,9 @@ while true; do
 				count=$((count + 1))
 
 				if (( guess > number )); then
-					echo "Too high! Try again"
+					echo "Too high! Try again."
 				elif (( guess < number )); then
-					echo "Too low! Try again!"
+					echo "Too low! Try again."
 				fi
 			done
 
