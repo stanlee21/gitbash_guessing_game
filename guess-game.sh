@@ -279,9 +279,12 @@ while true; do
 			# ------------------------------------
 			echo "Leaderboard · $LEVEL_NAME · best game per player"
 			
-			leaderboard="leaderboard.txt"
-			touch "$leaderboard"
-			: > "$leaderboard"
+			leaderboard=$(mktemp) || {
+				echo "Error: Could not create temporary file."
+				continue
+			}
+
+			trap 'rm -f "$leaderboard"' EXIT
 
 			while IFS='|' read -r l1 l2 l3 l4 l5 l6 l7 || [[ -n "$l1" ]]; do
 
@@ -304,7 +307,6 @@ while true; do
 			
 			if [[ ! -s "$leaderboard" ]]; then
 				echo "No $LEVEL_NAME games played yet."
-				rm -f "$leaderboard"
 			else
 				printf "%-3s %-11s %-5s %-5s %-10s\n" "#" "PLAYER" "TRIES" "TIME" "DATE"
 				
@@ -328,8 +330,6 @@ while true; do
 
 					if (( rank > 5 )); then break; fi
 				done < <(sort "$leaderboard")
-
-				rm -f "$leaderboard"
 			fi
 			;;
 
